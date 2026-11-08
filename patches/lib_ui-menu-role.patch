@@ -1,0 +1,26 @@
+From 5132dbe7dc40cc5fc00badb21df6a0fc9a2469bb Mon Sep 17 00:00:00 2001
+From: BlindMaster24 <375291171150z@gmail.com>
+Date: Sun, 8 Nov 2026 04:31:42 +0300
+Subject: [PATCH] Read menu popup as a menu in screen readers
+
+---
+ ui/widgets/menu/menu.h | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/ui/widgets/menu/menu.h b/ui/widgets/menu/menu.h
+index 4fa82b7..d9859d7 100644
+--- a/ui/widgets/menu/menu.h
++++ b/ui/widgets/menu/menu.h
+@@ -40,6 +40,9 @@ public:
+ 		return _st;
+ 	}
+ 
++	QAccessible::Role accessibilityRole() override {
++		return QAccessible::PopupMenu;
++	}
+ 	not_null<QAction*> addAction(base::unique_qptr<ItemBase> widget);
+ 	not_null<QAction*> addAction(
+ 		const QString &text,
+-- 
+2.53.0.windows.1
+

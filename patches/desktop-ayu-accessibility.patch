@@ -1,0 +1,106 @@
+From d5ed937ea2d08a76b7a0652d8a62c0d4ae600b8c Mon Sep 17 00:00:00 2001
+From: BlindMaster24 <BlindMaster24@users.noreply.github.com>
+Date: Sun, 8 Nov 2026 04:44:20 +0300
+Subject: [PATCH] Make menu popups readable by screen readers
+
+Menu items were read as plain text because the popup had no menu role.
+---
+ Telegram/CMakeLists.txt                       |  2 ++
+ Telegram/SourceFiles/ayu/ayu_infra.cpp        |  2 ++
+ .../SourceFiles/ayu/ui/ayu_accessibility.cpp  | 30 +++++++++++++++++++
+ .../SourceFiles/ayu/ui/ayu_accessibility.h    | 13 ++++++++
+ 4 files changed, 47 insertions(+)
+ create mode 100644 Telegram/SourceFiles/ayu/ui/ayu_accessibility.cpp
+ create mode 100644 Telegram/SourceFiles/ayu/ui/ayu_accessibility.h
+
+diff --git a/Telegram/CMakeLists.txt b/Telegram/CMakeLists.txt
+index a957cfd5c4..ba94a26dec 100644
+--- a/Telegram/CMakeLists.txt
++++ b/Telegram/CMakeLists.txt
+@@ -129,6 +129,8 @@ set(ayugram_files
+         ayu/utils/windows_utils.h
+         ayu/utils/rc_manager.cpp
+         ayu/utils/rc_manager.h
++        ayu/ui/ayu_accessibility.cpp
++        ayu/ui/ayu_accessibility.h
+         ayu/ui/ayu_logo.cpp
+         ayu/ui/ayu_logo.h
+         ayu/ui/toasts.cpp
+diff --git a/Telegram/SourceFiles/ayu/ayu_infra.cpp b/Telegram/SourceFiles/ayu/ayu_infra.cpp
+index 2fa8a2a3f2..8745ba34da 100644
+--- a/Telegram/SourceFiles/ayu/ayu_infra.cpp
++++ b/Telegram/SourceFiles/ayu/ayu_infra.cpp
+@@ -11,6 +11,7 @@
+ #include "ayu/ayu_ui_settings.h"
+ #include "ayu/ayu_worker.h"
+ #include "ayu/data/ayu_database.h"
++#include "ayu/ui/ayu_accessibility.h"
+ #include "ayu/ui/ayu_logo.h"
+ #include "features/translator/ayu_translator.h"
+ #include "lang/lang_instance.h"
+@@ -75,6 +76,7 @@ void init() {
+ 	initWorker();
+ 	initRCManager();
+ 	initTranslator();
++	Ayu::Ui::InitAccessibility();
+ }
+ 
+ }
+diff --git a/Telegram/SourceFiles/ayu/ui/ayu_accessibility.cpp b/Telegram/SourceFiles/ayu/ui/ayu_accessibility.cpp
+new file mode 100644
+index 0000000000..1327215616
+--- /dev/null
++++ b/Telegram/SourceFiles/ayu/ui/ayu_accessibility.cpp
+@@ -0,0 +1,30 @@
++// This is the source code of AyuGram for Desktop.
++//
++// We do not and cannot prevent the use of our code,
++// but be respectful and credit the original author.
++//
++// Copyright @Radolyn, 2026
++#include "ayu/ui/ayu_accessibility.h"
++
++#include "ui/widgets/menu/menu.h"
++
++#include <QAccessible>
++#include <QAccessibleWidget>
++
++namespace Ayu::Ui {
++namespace {
++
++QAccessibleInterface *InterfaceFactory(const QString &, QObject *object) {
++	if (const auto menu = dynamic_cast<::Ui::Menu::Menu*>(object)) {
++		return new QAccessibleWidget(menu, QAccessible::PopupMenu);
++	}
++	return nullptr;
++}
++
++} // namespace
++
++void InitAccessibility() {
++	QAccessible::installFactory(&InterfaceFactory);
++}
++
++} // namespace Ayu::Ui
+diff --git a/Telegram/SourceFiles/ayu/ui/ayu_accessibility.h b/Telegram/SourceFiles/ayu/ui/ayu_accessibility.h
+new file mode 100644
+index 0000000000..dd1fe3cb35
+--- /dev/null
++++ b/Telegram/SourceFiles/ayu/ui/ayu_accessibility.h
+@@ -0,0 +1,13 @@
++// This is the source code of AyuGram for Desktop.
++//
++// We do not and cannot prevent the use of our code,
++// but be respectful and credit the original author.
++//
++// Copyright @Radolyn, 2026
++#pragma once
++
++namespace Ayu::Ui {
++
++void InitAccessibility();
++
++} // namespace Ayu::Ui
+-- 
+2.53.0.windows.1
+

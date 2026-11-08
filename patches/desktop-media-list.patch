@@ -1,0 +1,101 @@
+diff --git a/Telegram/SourceFiles/info/media/info_media_list_widget.cpp b/Telegram/SourceFiles/info/media/info_media_list_widget.cpp
+index 9180b254ff..ef2bd60889 100644
+--- a/Telegram/SourceFiles/info/media/info_media_list_widget.cpp
++++ b/Telegram/SourceFiles/info/media/info_media_list_widget.cpp
+@@ -2946,6 +2946,69 @@ QRect ListWidget::itemGeometryByIndex(int index) {
+ 	return QRect();
+ }
+ 
++QAccessible::Role ListWidget::accessibilityRole() {
++	return QAccessible::List;
++}
++
++QString ListWidget::accessibilityName() {
++	return QString();
++}
++
++int ListWidget::accessibilityChildCount() const {
++	auto result = 0;
++	for (const auto &section : _sections) {
++		result += int(section.items().size());
++	}
++	return result;
++}
++
++QAccessible::Role ListWidget::accessibilityChildRole() const {
++	return QAccessible::ListItem;
++}
++
++QString ListWidget::accessibilityChildName(int index) const {
++	const auto item = itemAtIndex(index);
++	if (!item) {
++		return {};
++	}
++	const auto document = item->getDocument();
++	if (!document) {
++		return tr::lng_media_photo_title(tr::now);
++	}
++	const auto name = document->filename();
++	return name.isEmpty() ? tr::lng_media_video(tr::now) : name;
++}
++
++QRect ListWidget::accessibilityChildRect(int index) const {
++	return itemRectAtIndex(index);
++}
++
++BaseLayout *ListWidget::itemAtIndex(int index) const {
++	auto currentIndex = 0;
++	for (const auto &section : _sections) {
++		for (const auto &item : section.items()) {
++			if (currentIndex == index) {
++				return item;
++			}
++			++currentIndex;
++		}
++	}
++	return nullptr;
++}
++
++QRect ListWidget::itemRectAtIndex(int index) const {
++	auto currentIndex = 0;
++	for (const auto &section : _sections) {
++		for (const auto &item : section.items()) {
++			if (currentIndex == index) {
++				return section.findItemDetails(item).geometry;
++			}
++			++currentIndex;
++		}
++	}
++	return QRect();
++}
++
+ BaseLayout* ListWidget::itemByIndex(int index) {
+ 	if (index < 0) {
+ 		return nullptr;
+diff --git a/Telegram/SourceFiles/info/media/info_media_list_widget.h b/Telegram/SourceFiles/info/media/info_media_list_widget.h
+index 8518f5ff2c..ef4b95e573 100644
+--- a/Telegram/SourceFiles/info/media/info_media_list_widget.h
++++ b/Telegram/SourceFiles/info/media/info_media_list_widget.h
+@@ -98,6 +98,13 @@ public:
+ 	[[nodiscard]] int heightForFirstRows(int count) const;
+ 	[[nodiscard]] bool allRowsDisplayed() const;
+ 	[[nodiscard]] bool hasRows() const;
++
++	QAccessible::Role accessibilityRole() override;
++	QString accessibilityName() override;
++	int accessibilityChildCount() const override;
++	QAccessible::Role accessibilityChildRole() const override;
++	QString accessibilityChildName(int index) const override;
++	QRect accessibilityChildRect(int index) const override;
+ 	void selectionAction(SelectionAction action);
+ 	void setSelectOnClick(bool enabled);
+ 	void setSelectedLimit(int limit);
+@@ -377,6 +384,8 @@ private:
+ 	[[nodiscard]] int itemIndexFromPoint(QPoint point) const;
+ 	[[nodiscard]] QRect itemGeometryByIndex(int index);
+ 	[[nodiscard]] BaseLayout *itemByIndex(int index);
++	[[nodiscard]] BaseLayout *itemAtIndex(int index) const;
++	[[nodiscard]] QRect itemRectAtIndex(int index) const;
+ 	[[nodiscard]] bool canReorder() const;
+ 	void reorderItemsInSections(int oldIndex, int newIndex);
+ 	void resetAllItemShifts();
